@@ -1,0 +1,128 @@
+﻿@page "/order/details/{Id:int}"
+@using System.Globalization
+@using EcommerceBlazor.Utility
+@inject IOrderRepository _orderRepository
+@inject IJSRuntime _JSRuntime
+@inject AuthenticationStateProvider _AuthenticationStateProvider
+
+@if (_isProcessing)
+{
+    <div class="position-absolute w-100 vh-100 d-flex flex-column align-items-center bg-white justify-content-center">
+        <img src="/images/loading.gif" alt="loading" />
+    </div>
+}
+else
+{
+    <div class="container my-5 mx-auto p-5 w-100" style="max-width: 950px;">
+        <div class="card" style="max-width: 750px;">
+            <div class="pt-3 text-success text-center">
+                <span class="h4"> ORDER DETAILS</span>
+            </div>
+
+            <hr />
+            <div class="px-3">
+                <p>Order Id: @orderHeader.Id</p>
+                <p>Name: @orderHeader.Name</p>
+                <p>Email: @orderHeader.Email</p>
+                <p>Phone: @orderHeader.PhoneNumber</p>
+                <p>Order Status:  @orderHeader.Status</p>
+            </div>
+            <hr />
+            <div class="card-body">
+                <h4 class="text-success">Menu Items</h4>
+
+                @foreach (var details in orderHeader.OrderDetails)
+                {
+                    <div class="d-flex">
+                        <div class="d-flex w-100 justify-content-between">
+                            <p>
+                                &nbsp; -- @details.ProductName
+                            </p>
+                            <p>
+                                @details.Price.ToString("C", CultureInfo.GetCultureInfo("en-us")) x @details.Quantity =
+                            </p>
+                        </div>
+                        <div class="ps-4">
+                            @((details.Price * @details.Quantity).ToString("C", CultureInfo.GetCultureInfo("en-us")))
+                        </div>
+
+                    </div>
+                }
+
+
+                <hr />
+                <h4 class="text-success text-end">
+                    @orderHeader.OrderTotal.ToString("C", CultureInfo.GetCultureInfo("en-us"))
+                </h4>
+                <hr />
+
+                <div class="row">
+                    <div class="col-5">
+                        <a href="order/list" class="btn btn-secondary  m-2 p-2" style="width:150px;">Back to Orders</a>
+                    </div>
+                    <div class="col-7 text-end">
+                        @if(orderHeader.Status != SD.StatusCancelled && orderHeader.Status != SD.StatusCompleted &&
+                       _AuthenticationStateProvider.GetAuthenticationStateAsync().GetAwaiter().GetResult().User?.IsInRole(SD.Role_Admin) == true)
+                        {
+                            <button class="btn btn-danger m-2 p-2" @onclick="() => UpdateStatus(SD.StatusCancelled)" style="width:150px;">Cancelled</button>
+
+                            @if(orderHeader.Status == SD.StatusPending)
+                            {
+                                <button class="btn btn-primary m-2 p-2" style="width:150px;" @onclick="() => UpdateStatus(SD.StatusReadyForPickup)">Ready for Pickup</button>
+                            }
+                            @if (orderHeader.Status == SD.StatusReadyForPickup)
+                            {
+                                <button class="btn btn-success m-2 p-2" style="width:150px;" @onclick="() => UpdateStatus(SD.StatusCompleted)">Completed</button>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _isProcessing { get; set; } = true;
+
+    [Parameter]
+    public int Id { get; set; }
+    private OrderHeader? orderHeader = null;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadOrder();
+
+            _isProcessing = false;
+            StateHasChanged();
+        }
+        //return base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task LoadOrder()
+    {
+        orderHeader = await _orderRepository.GetAsync(Id);
+    }
+
+    private async Task UpdateStatus(string newStatus)
+    {
+        var result = await _orderRepository.UpdateStatusAsync(Id, newStatus);
+
+        if (result)
+        {
+            _JSRuntime?.ToastrSuccess($"Status updated to {newStatus} successfully!");
+        }
+        else
+        {
+            _JSRuntime?.ToastrError("Failed to update status!");
+        }
+    }
+}
