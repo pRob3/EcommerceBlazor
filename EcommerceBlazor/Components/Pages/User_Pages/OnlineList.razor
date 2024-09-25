@@ -1,0 +1,68 @@
+﻿@page "/online/users"
+@using EcommerceBlazor.Hubs
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.EntityFrameworkCore
+@inject UserManager<ApplicationUser> _userManager
+@inject SignalRClientService _signalRClient
+@inject AuthenticationStateProvider _authenticationStateProvider
+@attribute [Authorize(Roles = "Admin")]
+
+<h3>Currently Logged-In Users</h3>
+
+<ul>
+    @foreach (var user in OnlineUsers)
+    {
+        <li>
+            @user.UserName
+            <button @onclick="() => SendMessage(user.Id)">Say Hello</button>
+        </li>
+    }
+</ul>
+
+@code {
+
+    private List<ApplicationUser> OnlineUsers = new List<ApplicationUser>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        OnlineUsers = await _userManager.Users.Where(u => u.IsOnline).ToListAsync();
+
+        var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            // Load online users
+
+            // Start SignalR connection after authentication
+            await _signalRClient.StartConnectionAsync();
+
+        }
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+
+        }
+        //return base.OnAfterRenderAsync(firstRender);
+    }
+
+
+
+    // private async Task SendMessage(string userId, string message ="Wow such a message!")
+    // {
+    //     if (HubConnection != null)
+    //     {
+    //         await HubConnection.SendAsync("SendMessageToUser", userId, message);
+    //     }
+    // }
+
+    private async Task SendMessage(string userId, string message = "Wow such a message!")
+    {
+        await _signalRClient.SendMessageAsync(userId, message);
+    }
+}

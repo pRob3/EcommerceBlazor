@@ -5,6 +5,7 @@
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsRuntime
 @inject IWebHostEnvironment _webHostEnvironment
+@attribute [Authorize(Roles = "Admin")]
 
 @if (_isProcessing)
 {

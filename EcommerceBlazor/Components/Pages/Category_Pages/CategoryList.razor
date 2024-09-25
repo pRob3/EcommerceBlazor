@@ -1,6 +1,7 @@
 ﻿@page "/category"
 @inject ICategoryRepository _categoryRepository
 @inject IJSRuntime _jsRuntime
+@attribute [Authorize(Roles = "Admin")]
 
 <BoostrapModal OnModalConfirmation="ConfirmDeleteClick"
                ButtonBootstrapStyle="btn-danger"

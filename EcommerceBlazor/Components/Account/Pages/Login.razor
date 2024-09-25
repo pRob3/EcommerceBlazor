@@ -9,6 +9,7 @@
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject IOnlineUserService OnlineUserService
 
 <PageTitle>Log in</PageTitle>
 
@@ -95,6 +96,18 @@
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
+
+            var user = await SignInManager.UserManager.FindByEmailAsync(Input.Email);
+            if (user != null)
+            {
+                user.IsOnline = true;
+                await SignInManager.UserManager.UpdateAsync(user);
+
+                // TODO: Notify the user's friends
+                // var friends = user.Friends.Select(f => f.Id).ToList();
+                // await _hubContext.Clients.All.SendAsync("NotifyFriendsOnline", user.Id, friends);
+            }
+
             RedirectManager.RedirectTo(ReturnUrl);
         }
         else if (result.RequiresTwoFactor)
