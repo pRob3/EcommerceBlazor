@@ -1,6 +1,7 @@
 ﻿@page "/product"
 @inject IProductRepository _productRepository
 @inject IJSRuntime _jsRuntime
+@attribute [Authorize(Roles = "Admin")]
 
 <BoostrapModal OnModalConfirmation="ConfirmDeleteClick"
                ButtonBootstrapStyle="btn-danger"

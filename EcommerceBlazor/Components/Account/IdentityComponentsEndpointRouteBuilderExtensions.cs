@@ -1,14 +1,16 @@
-using System.Security.Claims;
-using System.Text.Json;
 using EcommerceBlazor.Components.Account.Pages;
 using EcommerceBlazor.Components.Account.Pages.Manage;
 using EcommerceBlazor.Data;
+using EcommerceBlazor.Hubs;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Primitives;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace Microsoft.AspNetCore.Routing
 {
@@ -43,9 +45,28 @@ namespace Microsoft.AspNetCore.Routing
             accountGroup.MapPost("/Logout", async (
                 ClaimsPrincipal user,
                 [FromServices] SignInManager<ApplicationUser> signInManager,
+                [FromServices] UserManager<ApplicationUser> userManager,
+                [FromServices] IHubContext<OnlineStatusHub> hubContext,
                 [FromForm] string returnUrl) =>
             {
+                // Get the current user from the UserManager
+                var currentUser = await userManager.GetUserAsync(user);
+                if (currentUser != null)
+                {
+                    // Update the user's online status in the database
+                    currentUser.IsOnline = false;
+                    await userManager.UpdateAsync(currentUser);
+
+                    // TODO: Notify the user's friends
+                    // Notify the user's friends that they've logged out
+                    //var friends = currentUser.Friends.Select(f => f.Id).ToList();
+                    //await hubContext.Clients.Users(friends).SendAsync("FriendOffline", currentUser.Id);
+                }
+
+                // Sign the user out from the identity system
                 await signInManager.SignOutAsync();
+
+                // Redirect to the provided return URL
                 return TypedResults.LocalRedirect($"~/{returnUrl}");
             });
 
