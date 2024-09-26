@@ -1,13 +1,11 @@
 using EcommerceBlazor.Components.Account.Pages;
 using EcommerceBlazor.Components.Account.Pages.Manage;
 using EcommerceBlazor.Data;
-using EcommerceBlazor.Hubs;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Primitives;
 using System.Security.Claims;
 using System.Text.Json;
@@ -46,7 +44,6 @@ namespace Microsoft.AspNetCore.Routing
                 ClaimsPrincipal user,
                 [FromServices] SignInManager<ApplicationUser> signInManager,
                 [FromServices] UserManager<ApplicationUser> userManager,
-                [FromServices] IHubContext<OnlineStatusHub> hubContext,
                 [FromForm] string returnUrl) =>
             {
                 // Get the current user from the UserManager

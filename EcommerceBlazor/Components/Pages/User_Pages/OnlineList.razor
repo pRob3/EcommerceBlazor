@@ -1,10 +1,8 @@
 ﻿@page "/online/users"
-@using EcommerceBlazor.Hubs
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.SignalR.Client
 @using Microsoft.EntityFrameworkCore
 @inject UserManager<ApplicationUser> _userManager
-@inject SignalRClientService _signalRClient
 @inject AuthenticationStateProvider _authenticationStateProvider
 @attribute [Authorize(Roles = "Admin")]
 
@@ -15,7 +13,7 @@
     {
         <li>
             @user.UserName
-            <button @onclick="() => SendMessage(user.Id)">Say Hello</button>
+            <button>Say Hello</button>
         </li>
     }
 </ul>
@@ -36,7 +34,7 @@
             // Load online users
 
             // Start SignalR connection after authentication
-            await _signalRClient.StartConnectionAsync();
+
 
         }
     }
@@ -61,8 +59,8 @@
     //     }
     // }
 
-    private async Task SendMessage(string userId, string message = "Wow such a message!")
-    {
-        await _signalRClient.SendMessageAsync(userId, message);
-    }
+    // private async Task SendMessage(string userId, string message = "Wow such a message!")
+    // {
+    //     await _signalRClient.SendMessageAsync(userId, message);
+    // }
 }
